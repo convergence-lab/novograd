@@ -6,7 +6,6 @@ class NovoGrad(optim.Optimizer):
     def __init__(self, params, grad_averaging=False, lr=0.01, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
         super(NovoGrad, self).__init__(params, defaults)
-        self._lr = lr
         self._beta1 = betas[0]
         self._beta2 = betas[1]
         self._eps = eps
@@ -63,7 +62,7 @@ class NovoGrad(optim.Optimizer):
          
                 bias_correction1 = 1 - self._beta1 ** step
                 bias_correction2 = 1 - self._beta2 ** step
-                step_size = self._lr * math.sqrt(bias_correction2 + self._eps) / bias_correction1
+                step_size = group['lr'] * math.sqrt(bias_correction2 + self._eps) / bias_correction1
                 
                 state['v'], state['m'], state['grad_ema'] = v, m, grad_ema
                 p.data.add_(-step_size, m)
