@@ -53,7 +53,8 @@ class Net(nn.Module):
 
 model = Net()
 criterion = nn.CrossEntropyLoss()
-# optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+# optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+# optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = NovoGrad(model.parameters(), lr=0.01)
 
 
