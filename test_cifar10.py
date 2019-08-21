@@ -17,7 +17,7 @@ trainset = torchvision.datasets.CIFAR10(root='./data',
                                       download=True,
                                       transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset,
-                                          batch_size=100,
+                                          batch_size=200,
                                           shuffle=True,
                                           num_workers=2)
 
@@ -26,7 +26,7 @@ testset = torchvision.datasets.CIFAR10(root='./data',
                                      download=True,
                                      transform=transform)
 testloader = torch.utils.data.DataLoader(testset,
-                                         batch_size=100,
+                                         batch_size=200,
                                          shuffle=False,
                                          num_workers=2)
 
@@ -61,7 +61,6 @@ criterion = nn.CrossEntropyLoss()
 # optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 # optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = NovoGrad(model.parameters(), lr=0.01)
-
 
 epochs = 10
 
