@@ -47,7 +47,7 @@ class NovoGrad(optim.Optimizer):
 
                 grad = p.grad.data     
 
-                g2 = torch.sum(grad**2)
+                g2 = torch.norm(grad)**2
                 grad_ema = g2 if grad_ema is None else grad_ema * \
                     self._beta2 + g2*(1. - self._beta2)
                 grad *= 1.0 / (torch.sqrt(grad_ema) + self._eps)
@@ -57,8 +57,7 @@ class NovoGrad(optim.Optimizer):
                 if self._grad_averaging:
                     grad *= (1. - self._beta1)
                 
-                gn2 = torch.norm(grad)**2
-                v = self._beta2*v + (1. - self._beta2)*gn2
+                v = self._beta2*v + (1. - self._beta2)*g2
                 m = self._beta1*m + (grad / (torch.sqrt(v) + self._eps) + self._wd*p.data)
          
                 bias_correction1 = 1 - self._beta1 ** step
