@@ -33,7 +33,7 @@ class NovoGrad(optim.Optimizer):
                     v = torch.norm(grad)
                     state['step'] = 0
                     state['v'] = v
-                    state['m'] = grad/torch.sqrt(v + self._eps) + self._wd * p.data
+                    state['m'] = grad/(torch.sqrt(v) + self._eps) + self._wd * p.data
                     state['grad_ema'] = None
             self._momentum_initialized = True
         
