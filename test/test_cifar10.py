@@ -53,30 +53,30 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.dropout2(x)
         x = self.fc2(x)
+        x = F.log_softmax(x, dim=1)
         return x
 
 
 model = Net()
 criterion = nn.CrossEntropyLoss()
 # optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-# optimizer = optim.Adam(model.parameters(), lr=0.001)
-optimizer = NovoGrad(model.parameters(), lr=0.01)
-
-epochs = 10
+# optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+# optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.001)
+optimizer = NovoGrad(model.parameters(), lr=0.01,
+                     grad_averaging=True, weight_decay=0.001)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, 3*len(trainloader), 1e-4)
+epochs = 3
 
 for epoch in range(epochs):
     running_loss = 0.0
     for i, (inputs, labels) in enumerate(trainloader, 0):
-        # zero the parameter gradients
         optimizer.zero_grad()
-
-        # forward + backward + optimize
         outputs = model(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
-        # print statistics
         running_loss += loss.item()
         if i % 100 == 99:
             print('[{:d}, {:5d}] loss: {:.3f}'.format(
