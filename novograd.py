@@ -3,7 +3,7 @@ from torch import optim
 import math
 
 class NovoGrad(optim.Optimizer):
-    def __init__(self, params, grad_averaging=False, lr=0.1, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
+    def __init__(self, params, grad_averaging=False, lr=0.1, betas=(0.95, 0.98), eps=1e-8, weight_decay=0):
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
         super(NovoGrad, self).__init__(params, defaults)
         self._lr = lr
@@ -30,11 +30,10 @@ class NovoGrad(optim.Optimizer):
                     if grad.is_sparse:
                         raise RuntimeError('NovoGrad does not support sparse gradients')
 
-                    v = torch.norm(grad)
+                    v = torch.norm(grad)**2
                     state['step'] = 0
                     state['v'] = v
-                    state['m'] = grad/(torch.sqrt(v) + self._eps) + self._wd * p.data
-                    state['grad_ema'] = None
+                    state['m'] = grad/torch.sqrt(v)  + self._wd * p.data
             self._momentum_initialized = True
         
         for group in self.param_groups:
@@ -45,13 +44,9 @@ class NovoGrad(optim.Optimizer):
                 state['step'] += 1
                 v, m, grad_ema, step = state['v'], state['m'], state['grad_ema'], state['step']
 
-                grad = p.grad.data     
+                grad = p.grad.data
 
                 g2 = torch.norm(grad)**2
-                grad_ema = g2 if grad_ema is None else grad_ema * \
-                    self._beta2 + g2*(1. - self._beta2)
-                grad *= 1.0 / (torch.sqrt(grad_ema) + self._eps)
-
                 if self._wd > 0.:
                     grad += self._wd*p
                 if self._grad_averaging:
