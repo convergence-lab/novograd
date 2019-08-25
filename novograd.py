@@ -1,3 +1,4 @@
+# Author Masashi Kimura (Convergence Lab.)
 import torch
 from torch import optim
 import math
