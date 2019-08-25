@@ -31,9 +31,9 @@ class NovoGrad(optim.Optimizer):
                         raise RuntimeError('NovoGrad does not support sparse gradients')
 
                     v = torch.norm(grad)**2
-                    state['step'] = 0
+                    m = grad/(torch.sqrt(v) + self._eps) + self._wd * p.data
                     state['v'] = v
-                    state['m'] = grad/torch.sqrt(v)  + self._wd * p.data
+                    state['m'] = m
             self._momentum_initialized = True
         
         for group in self.param_groups:
@@ -41,8 +41,7 @@ class NovoGrad(optim.Optimizer):
                 if p.grad is None:
                     continue
                 state = self.state[p]
-                state['step'] += 1
-                v, m, step = state['v'], state['m'], state['step']
+                v, m = state['v'], state['m']
 
                 grad = p.grad.data
                 g2 = torch.norm(grad)**2
@@ -54,10 +53,6 @@ class NovoGrad(optim.Optimizer):
                 v = self._beta2*v + (1. - self._beta2)*g2
                 m = self._beta1*m + (grad / (torch.sqrt(v) + self._eps) + self._wd*p.data)
          
-                bias_correction1 = 1 - self._beta1 ** step
-                bias_correction2 = 1 - self._beta2 ** step
-                step_size = self._lr * (math.sqrt(bias_correction2) + self._eps) / bias_correction1
-                
                 state['v'], state['m']= v, m
-                p.data.add_(-step_size, m)
+                p.data.add_(-group['lr'], m)
         return loss
