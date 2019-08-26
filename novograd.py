@@ -4,7 +4,7 @@ from torch import optim
 import math
 
 class NovoGrad(optim.Optimizer):
-    def __init__(self, params, grad_averaging=False, grad_ema=False, lr=0.1, betas=(0.95, 0.98), eps=1e-8, weight_decay=0):
+    def __init__(self, params, grad_averaging=False, lr=0.1, betas=(0.95, 0.98), eps=1e-8, weight_decay=0):
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
         super(NovoGrad, self).__init__(params, defaults)
         self._lr = lr
@@ -13,7 +13,6 @@ class NovoGrad(optim.Optimizer):
         self._eps = eps
         self._wd = weight_decay
         self._grad_averaging = grad_averaging
-        self._grad_ema = grad_ema
 
         self._momentum_initialized = False
 
@@ -48,18 +47,14 @@ class NovoGrad(optim.Optimizer):
                 state['step'] += 1
 
                 step, v, m = state['step'], state['v'], state['m']
-                if self._grad_ema:
-                    grad_ema = state['grad_ema']
+                grad_ema = state['grad_ema']
 
                 grad = p.grad.data
                 g2 = torch.norm(grad)**2
-                if self._grad_ema:
-                    grad_ema = g2 if grad_ema is None else grad_ema * \
-                        self._beta2 + g2*(1. - self._beta2)
-                    grad *= 1.0 / (torch.sqrt(grad_ema) + self._eps)
+                grad_ema = g2 if grad_ema is None else grad_ema * \
+                    self._beta2 + g2*(1. - self._beta2)
+                grad *= 1.0 / (torch.sqrt(grad_ema) + self._eps)
 
-                if self._wd > 0.:
-                    grad += self._wd*p
                 if self._grad_averaging:
                     grad *= (1. - self._beta1)
 
@@ -71,7 +66,6 @@ class NovoGrad(optim.Optimizer):
                 step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
 
                 state['v'], state['m']  = v, m
-                if self._grad_ema:
-                    state['grad_ema'] = grad_ema
+                state['grad_ema'] = grad_ema
                 p.data.add_(-step_size, m)
         return loss
