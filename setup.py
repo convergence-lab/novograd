@@ -19,7 +19,7 @@ def _requires_from_file(filename):
 
 # version
 here = os.path.dirname(os.path.abspath(__file__))
-version = "0.0.1"
+version = "0.0.2"
 
 setup(
     name="novograd",
