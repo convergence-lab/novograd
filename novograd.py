@@ -62,7 +62,7 @@ class NovoGrad(optim.Optimizer):
                 m = self._beta1*m + (grad / (torch.sqrt(v) + self._eps) + self._wd*p.data)
                 bias_correction1 = 1 - self._beta1 ** step
                 bias_correction2 = 1 - self._beta2 ** step
-                step_size = self._lr * (math.sqrt(bias_correction2) + self._eps) / bias_correction1
+                step_size = self._lr * math.sqrt(bias_correction2) / bias_correction1
 
                 state['v'], state['m'], state['grad_ema'] = v, m, grad_ema
                 p.data.add_(-step_size, m)
