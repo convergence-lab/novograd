@@ -54,11 +54,11 @@ class Net(nn.Module):
 
 model = Net()
 criterion = nn.NLLLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+# optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
 # optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.001)
-# optimizer = NovoGrad(model.parameters(), lr=0.01, weight_decay=0.001)
-# schedular = optim.lr_scheduler.CosineAnnealingLR(optimizer, 3*len(trainloader), 1e-4)
+optimizer = NovoGrad(model.parameters(), lr=0.01, weight_decay=0.001)
+schedular = optim.lr_scheduler.CosineAnnealingLR(optimizer, 3*len(trainloader), 1e-4)
 
 epochs = 3
 
@@ -73,7 +73,7 @@ for epoch in range(epochs):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        # schedular.step()
+        schedular.step()
 
         # print statistics
         running_loss += loss.item()
