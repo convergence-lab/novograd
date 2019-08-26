@@ -64,6 +64,6 @@ class NovoGrad(optim.Optimizer):
                 bias_correction2 = 1 - self._beta2 ** step
                 step_size = self._lr * (math.sqrt(bias_correction2) + self._eps) / bias_correction1
 
-                state['v'], state['m']= v, m
+                state['v'], state['m'], state['grad_ema'] = v, m, grad_ema
                 p.data.add_(-step_size, m)
         return loss
