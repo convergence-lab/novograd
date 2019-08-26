@@ -1,6 +1,7 @@
 # Author Masashi Kimura (Convergence Lab.)
 import torch
 from torch import optim
+import math
 
 class NovoGrad(optim.Optimizer):
     def __init__(self, params, grad_averaging=False, lr=0.1, betas=(0.95, 0.98), eps=1e-8, weight_decay=0):
@@ -32,6 +33,7 @@ class NovoGrad(optim.Optimizer):
 
                     v = torch.norm(grad)**2
                     m = grad/(torch.sqrt(v) + self._eps) + self._wd * p.data
+                    state['step'] = 0
                     state['v'] = v
                     state['m'] = m
                     state['grad_ema'] = None
@@ -42,7 +44,8 @@ class NovoGrad(optim.Optimizer):
                 if p.grad is None:
                     continue
                 state = self.state[p]
-                v, m, grad_ema = state['v'], state['m'], state['grad_ema']
+                state['step'] += 1
+                step, v, m, grad_ema = state['step'], state['v'], state['m'], state['grad_ema']
 
                 grad = p.grad.data
                 g2 = torch.norm(grad)**2
@@ -57,7 +60,10 @@ class NovoGrad(optim.Optimizer):
 
                 v = self._beta2*v + (1. - self._beta2)*g2
                 m = self._beta1*m + (grad / (torch.sqrt(v) + self._eps) + self._wd*p.data)
+                bias_correction1 = 1 - self._beta1 ** step
+                bias_correction2 = 1 - self._beta2 ** step
+                step_size = self._lr * (math.sqrt(bias_correction2) + self._eps) / bias_correction1
 
                 state['v'], state['m']= v, m
-                p.data.add_(-group['lr'], m)
+                p.data.add_(-step_size, m)
         return loss
